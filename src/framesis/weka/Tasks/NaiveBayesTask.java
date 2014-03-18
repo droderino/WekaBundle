@@ -13,7 +13,7 @@ import weka.classifiers.bayes.NaiveBayes;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 
-import framesis.TextMiningTask;
+import framesis.api.TextMiningTask;
 
 public class NaiveBayesTask implements TextMiningTask<Classifier>{
 
@@ -21,13 +21,14 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 	private Instances test;
 	@Override
 	public String execute(Map<String, String> params) {
+
+		String filename = params.get("file") + "_naiveBayes.txt";
 		Classifier cls = this.executeTask(params);
 		try {
 			Evaluation eval = new Evaluation(train);
 			eval.evaluateModel(cls, test);
 			String result = eval.toSummaryString();
 			
-			String filename = params.get("file") + "_naiveBayes.txt";
 			FileWriter fw = new FileWriter(filename);
 			fw.write(result);
 			fw.close();
@@ -36,7 +37,7 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
+		return filename;
 	}
 
 	@Override
@@ -68,16 +69,24 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 		train = new Instances(data, 0, trainSize);
 		test = new Instances(data, trainSize, testSize);
 		
-		if(train.classIndex() == -1)
-			train.setClassIndex(Integer.parseInt(params.get("classIndex")));
-		if(test.classIndex() == -1)
-			test.setClassIndex(Integer.parseInt(params.get("classIndex")));
+		setClassAttribute(params, train);
+		setClassAttribute(params, test);
+	}
+
+	private void setClassAttribute(Map<String, String> params, Instances instances) {
+		if(instances.classIndex() == -1)
+		{
+			if(params.get("classIndex") != null)
+				instances.setClassIndex(Integer.parseInt(params.get("classIndex")));
+			else if(params.get("classAttribute") != null)
+				instances.setClass(instances.attribute(params.get("classAttribute")));
+		}
 	}
 
 	@Override
 	public String getDescription() {
 		// TODO Auto-generated method stub
-		return null;
+		return "NaiveBayesTask";
 	}
 	
 	private String[] configureOptions(Map<String, String> params)
@@ -90,7 +99,8 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 		while(iter.hasNext())
 		{
 			Entry<String, String> entry = iter.next();
-			if( !entry.getKey().equals("preparatedFile") && !entry.getKey().equals("classIndex") && !entry.getKey().endsWith("file") )
+			if( !entry.getKey().equals("preparatedFile") && !entry.getKey().equals("classIndex") 
+					&& !entry.getKey().equals("file") && !entry.getKey().equals("classAttribute") )
 			{
 				options.add(entry.getKey());
 				if(entry.getValue() != null)

@@ -14,7 +14,7 @@ import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 
-import framesis.TextMiningTask;
+import framesis.api.TextMiningTask;
 
 public class StringToWordVectorTask implements TextMiningTask<Instances>{
 
@@ -43,7 +43,12 @@ public class StringToWordVectorTask implements TextMiningTask<Instances>{
 			Instances instances = input.getDataSet();
 			
 			if(instances.classIndex() == -1)
-				instances.setClassIndex(Integer.parseInt(params.get("classIndex")));
+			{
+				if(params.get("classIndex") != null)
+					instances.setClassIndex(Integer.parseInt(params.get("classIndex")));
+				else if(params.get("classAttribute") != null)
+					instances.setClass(instances.attribute(params.get("classAttribute")));
+			}
 			
 			StringToWordVector filter = new StringToWordVector();
 			
@@ -64,7 +69,7 @@ public class StringToWordVectorTask implements TextMiningTask<Instances>{
 	@Override
 	public String getDescription() {
 		// TODO Auto-generated method stub
-		return null;
+		return "StringToWordVectorTask";
 	}
 
 	private String[] configureOptions(Map<String, String> params)
@@ -78,7 +83,8 @@ public class StringToWordVectorTask implements TextMiningTask<Instances>{
 		{
 			Entry<String, String> entry = iter.next();
 			
-			if( !entry.getKey().equals("preparatedFile") && !entry.getKey().equals("classIndex") && !entry.getKey().endsWith("file") )
+			if( !entry.getKey().equals("preparatedFile") && !entry.getKey().equals("classIndex") 
+					&& !entry.getKey().equals("file") && !entry.getKey().equals("classAttriute") )
 			{
 				options.add(entry.getKey());
 				if(entry.getValue() != null)

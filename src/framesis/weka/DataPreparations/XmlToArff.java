@@ -1,6 +1,6 @@
 package framesis.weka.DataPreparations;
 
-import framesis.DataPreparation;
+import framesis.api.DataPreparation;
 
 public class XmlToArff implements DataPreparation {
 
