@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import weka.classifiers.Classifier;
-import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
@@ -23,11 +22,10 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 	public String execute(Map<String, String> params) {
 
 		String filename = params.get("file") + "_naiveBayes.txt";
-		Classifier cls = this.executeTask(params);
+		this.executeTask(params);
 		try {
-			Evaluation eval = new Evaluation(train);
-			eval.evaluateModel(cls, test);
-			String result = eval.toSummaryString();
+			Instances output = mergeInstances(train, test);
+			String result = output.toString();
 			
 			FileWriter fw = new FileWriter(filename);
 			fw.write(result);
@@ -52,6 +50,10 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 			
 			naiveBayes.buildClassifier(train);
 			
+			for(int i=0; i<test.numInstances(); i++)
+			{
+				test.instance(i).setClassValue(naiveBayes.classifyInstance(test.instance(i)));
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -110,5 +112,13 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 		
 		String[] ret = new String[options.size()];
 		return options.toArray(ret);
+	}
+	
+	private Instances mergeInstances(Instances first, Instances second)
+	{
+		Instances result = first;
+		for(int i=0; i<second.numInstances(); i++)
+			result.add(second.instance(i));
+		return result;
 	}
 }
