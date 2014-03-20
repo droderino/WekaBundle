@@ -11,8 +11,8 @@ import weka.classifiers.Classifier;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
-
 import framesis.api.TextMiningTask;
+import framesis.weka.WekaParams;
 
 public class NaiveBayesTask implements TextMiningTask<Classifier>{
 
@@ -21,7 +21,7 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 	@Override
 	public String execute(Map<String, String> params) {
 
-		String filename = params.get("file") + "_naiveBayes.txt";
+		String filename = params.get(FILE) + "_naiveBayes.txt";
 		this.executeTask(params);
 		try {
 			Instances output = mergeInstances(train, test);
@@ -63,7 +63,7 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 
 	private void setTrainTestInstances(Map<String, String> params)
 			throws Exception {
-		DataSource input = new DataSource(params.get("preparatedFile"));
+		DataSource input = new DataSource(params.get(PREPARATEDFILE));
 		Instances data = input.getDataSet();
 		
 		int trainSize = (int)Math.round(data.numInstances() * 0.8);
@@ -78,10 +78,10 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 	private void setClassAttribute(Map<String, String> params, Instances instances) {
 		if(instances.classIndex() == -1)
 		{
-			if(params.get("classIndex") != null)
-				instances.setClassIndex(Integer.parseInt(params.get("classIndex")));
-			else if(params.get("classAttribute") != null)
-				instances.setClass(instances.attribute(params.get("classAttribute")));
+			if(params.get(WekaParams.CLASSINDEX) != null)
+				instances.setClassIndex(Integer.parseInt(params.get(WekaParams.CLASSINDEX)));
+			else if(params.get(WekaParams.CLASSATTRIBUTE) != null)
+				instances.setClass(instances.attribute(params.get(WekaParams.CLASSATTRIBUTE)));
 		}
 	}
 
@@ -101,8 +101,8 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 		while(iter.hasNext())
 		{
 			Entry<String, String> entry = iter.next();
-			if( !entry.getKey().equals("preparatedFile") && !entry.getKey().equals("classIndex") 
-					&& !entry.getKey().equals("file") && !entry.getKey().equals("classAttribute") )
+			if( !entry.getKey().equals(FILE) && !entry.getKey().equals(PREPARATEDFILE) 
+					&& !entry.getKey().equals(WekaParams.CLASSATTRIBUTE) && !entry.getKey().equals(WekaParams.CLASSINDEX) )
 			{
 				options.add(entry.getKey());
 				if(entry.getValue() != null)

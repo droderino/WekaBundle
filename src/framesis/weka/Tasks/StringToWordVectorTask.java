@@ -13,8 +13,8 @@ import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
-
 import framesis.api.TextMiningTask;
+import framesis.weka.WekaParams;
 
 public class StringToWordVectorTask implements TextMiningTask<Instances>{
 
@@ -22,7 +22,7 @@ public class StringToWordVectorTask implements TextMiningTask<Instances>{
 	public String execute(Map<String, String> params) {
 		// TODO Auto-generated method stub
 		Instances processedData = executeTask(params);
-		String filename = params.get("file") + "_StringToWordVectorTask.arff";
+		String filename = params.get(FILE) + "_StringToWordVectorTask.arff";
 		try {
 			FileWriter processedFile = new FileWriter(filename);
 			processedFile.write(processedData.toString());
@@ -39,15 +39,15 @@ public class StringToWordVectorTask implements TextMiningTask<Instances>{
 		Instances processedData = null;
 		
 		try {
-			DataSource input = new DataSource(params.get("preparatedFile"));
+			DataSource input = new DataSource(params.get(PREPARATEDFILE));
 			Instances instances = input.getDataSet();
 			
 			if(instances.classIndex() == -1)
 			{
-				if(params.get("classIndex") != null)
-					instances.setClassIndex(Integer.parseInt(params.get("classIndex")));
-				else if(params.get("classAttribute") != null)
-					instances.setClass(instances.attribute(params.get("classAttribute")));
+				if(params.get(WekaParams.CLASSINDEX) != null)
+					instances.setClassIndex(Integer.parseInt(params.get(WekaParams.CLASSINDEX)));
+				else if(params.get(WekaParams.CLASSATTRIBUTE) != null)
+					instances.setClass(instances.attribute(params.get(WekaParams.CLASSATTRIBUTE)));
 			}
 			
 			StringToWordVector filter = new StringToWordVector();
@@ -83,8 +83,8 @@ public class StringToWordVectorTask implements TextMiningTask<Instances>{
 		{
 			Entry<String, String> entry = iter.next();
 			
-			if( !entry.getKey().equals("preparatedFile") && !entry.getKey().equals("classIndex") 
-					&& !entry.getKey().equals("file") && !entry.getKey().equals("classAttriute") )
+			if( !entry.getKey().equals(FILE) && !entry.getKey().equals(PREPARATEDFILE) 
+					&& !entry.getKey().equals(WekaParams.CLASSINDEX) && !entry.getKey().equals(WekaParams.CLASSATTRIBUTE) )
 			{
 				options.add(entry.getKey());
 				if(entry.getValue() != null)
