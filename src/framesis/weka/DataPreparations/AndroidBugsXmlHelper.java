@@ -1,6 +1,5 @@
 package framesis.weka.DataPreparations;
 
-import java.text.ParseException;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
@@ -14,6 +13,8 @@ public class AndroidBugsXmlHelper extends DefaultHandler {
 	
 	private Instances data;
 	private Instance newInstance;
+	private String tmpDescription;
+	private int curId, i=0;
 	
 	private boolean bBug = false;
 	private boolean bBugId = false;
@@ -42,6 +43,7 @@ public class AndroidBugsXmlHelper extends DefaultHandler {
 	private String reportedBy = "reportedby";
 	private String openedDate = "openeddate";
 	private String description = "description";
+	private String prefix = "bug_";
 	
 	private FastVector statusVal;
 	private FastVector typeVal;
@@ -66,13 +68,14 @@ public class AndroidBugsXmlHelper extends DefaultHandler {
 		statusVal.addElement("verified");
 		statusVal.addElement("reviewed");
 		statusVal.addElement("declined");
-		statusVal.addElement("needsInfo");
-		statusVal.addElement("futureRelease");
+		statusVal.addElement("needsinfo");
+		statusVal.addElement("futurerelease");
 		statusVal.addElement("released");
 		statusVal.addElement("unreproducible");
 		statusVal.addElement("question");
-		statusVal.addElement("workingAsIntended");
+		statusVal.addElement("workingasintended");
 		statusVal.addElement("unassigned");
+		statusVal.addElement("usererror");
 		
 		typeVal = new FastVector();
 		typeVal.addElement("defect");
@@ -84,20 +87,21 @@ public class AndroidBugsXmlHelper extends DefaultHandler {
 		priorityVal.addElement("medium");
 		priorityVal.addElement("low");
 		priorityVal.addElement("small");
+		priorityVal.addElement("blocker");
 		
 		atts = new FastVector();
-		atts.addElement(new Attribute(bugId));
-		atts.addElement(new Attribute(title, (FastVector)null));
-		atts.addElement(new Attribute(status, statusVal));
-		atts.addElement(new Attribute(owner, (FastVector)null));
-		atts.addElement(new Attribute(type, typeVal));
-		atts.addElement(new Attribute(priority, priorityVal));
-		atts.addElement(new Attribute(component, (FastVector)null));
-		atts.addElement(new Attribute(closedOn, (FastVector)null));
-		atts.addElement(new Attribute(stars));
-		atts.addElement(new Attribute(reportedBy, (FastVector)null));
-		atts.addElement(new Attribute(openedDate, (FastVector)null));
-		atts.addElement(new Attribute(description, (FastVector)null));
+		atts.addElement(new Attribute(prefix + bugId));
+		atts.addElement(new Attribute(prefix + title, (FastVector)null));
+		atts.addElement(new Attribute(prefix + status, statusVal));
+		atts.addElement(new Attribute(prefix + owner, (FastVector)null));
+		atts.addElement(new Attribute(prefix + type, typeVal));
+		atts.addElement(new Attribute(prefix + priority, priorityVal));
+		atts.addElement(new Attribute(prefix + component, (FastVector)null));
+		atts.addElement(new Attribute(prefix + closedOn, (FastVector)null));
+		atts.addElement(new Attribute(prefix + stars));
+		atts.addElement(new Attribute(prefix + reportedBy, (FastVector)null));
+		atts.addElement(new Attribute(prefix + openedDate, (FastVector)null));
+		atts.addElement(new Attribute(prefix + description, (FastVector)null));
 		
 		data = new Instances("Android Bugs", atts, 0);
 	}
@@ -133,7 +137,10 @@ public class AndroidBugsXmlHelper extends DefaultHandler {
 		else if(qName.equalsIgnoreCase(openedDate))
 			bOpenedDate = true;
 		else if(qName.equalsIgnoreCase(description))
+		{
+			tmpDescription = new String();
 			bDescription = true;
+		}
 	}
 
 	@Override
@@ -167,7 +174,10 @@ public class AndroidBugsXmlHelper extends DefaultHandler {
 		else if(qName.equalsIgnoreCase(openedDate))
 			bOpenedDate = false;
 		else if(qName.equalsIgnoreCase(description))
+		{
+			newInstance.setValue((Attribute)atts.elementAt(11), tmpDescription);
 			bDescription = false;
+		}
 	}
 	
 	@Override
@@ -177,27 +187,20 @@ public class AndroidBugsXmlHelper extends DefaultHandler {
 		{
 			String value = new String(ch, start, length);
 			if(bBugId)
+			{
+				curId = Integer.parseInt(value);
 				newInstance.setValue((Attribute)atts.elementAt(0), Integer.parseInt(value));
+			}
 			else if(bTitle)
 				newInstance.setValue((Attribute)atts.elementAt(1), value);
 			else if(bStatus)
-			{
-				System.out.println("stat " + value);
-				value = value.toLowerCase();
-				System.out.println(value);
-				newInstance.setValue((Attribute)atts.elementAt(2), value);
-			}
+				newInstance.setValue((Attribute)atts.elementAt(2), value.toLowerCase());
 			else if(bOwner)
 				newInstance.setValue((Attribute)atts.elementAt(3), value);
 			else if(bType)
-				newInstance.setValue((Attribute)atts.elementAt(4), value);
+				newInstance.setValue((Attribute)atts.elementAt(4), value.toLowerCase());
 			else if(bPriority)
-			{
-				System.out.println("prio " + value);
-				value = value.toLowerCase();
-				System.out.println(value);
-				newInstance.setValue((Attribute)atts.elementAt(5), value);
-			}
+				newInstance.setValue((Attribute)atts.elementAt(5), value.toLowerCase());
 			else if(bComponent)
 				newInstance.setValue((Attribute)atts.elementAt(6), value);
 			else if(bClosedOn)
@@ -209,7 +212,11 @@ public class AndroidBugsXmlHelper extends DefaultHandler {
 			else if(bOpenedDate)
 				newInstance.setValue((Attribute)atts.elementAt(10), value);
 			else if(bDescription)
-				newInstance.setValue((Attribute)atts.elementAt(11), value);
+			{
+				if(value.startsWith("\n"))
+					value = value.replaceAll("\n", " ");
+				tmpDescription = tmpDescription + value;
+			}
 		}
 	}
 	
