@@ -4,10 +4,12 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.Map.Entry;
 
 import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
@@ -18,6 +20,7 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 
 	private Instances train;
 	private Instances test;
+	private Instances original;
 	@Override
 	public String execute(Map<String, String> params) {
 
@@ -50,6 +53,8 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 			
 			naiveBayes.buildClassifier(train);
 			
+			evaluateClassifier(params, naiveBayes);
+			
 			for(int i=0; i<test.numInstances(); i++)
 			{
 				test.instance(i).setClassValue(naiveBayes.classifyInstance(test.instance(i)));
@@ -61,10 +66,19 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 		return naiveBayes;
 	}
 
+	private void evaluateClassifier(Map<String, String> params,
+			Classifier naiveBayes) throws Exception {
+		Evaluation eval = new Evaluation(train);
+		eval.evaluateModel(naiveBayes, test);
+		String results = eval.toSummaryString() + eval.toClassDetailsString();
+		params.put(WekaParams.EVALUATIONRESULTS, results);
+	}
+
 	private void setTrainTestInstances(Map<String, String> params)
 			throws Exception {
 		DataSource input = new DataSource(params.get(PREPARATEDFILE));
 		Instances data = input.getDataSet();
+		original = input.getDataSet();
 		
 		int trainSize = (int)Math.round(data.numInstances() * 0.8);
 		int testSize = data.numInstances() - trainSize;
@@ -101,7 +115,7 @@ public class NaiveBayesTask implements TextMiningTask<Classifier>{
 		while(iter.hasNext())
 		{
 			Entry<String, String> entry = iter.next();
-			if( !entry.getKey().equals(FILE) && !entry.getKey().equals(PREPARATEDFILE) 
+			if( !entry.getKey().equals(FILE) && !entry.getKey().equals(PREPARATEDFILE) && !entry.getKey().equals(WekaParams.EVALUATIONRESULTS)
 					&& !entry.getKey().equals(WekaParams.CLASSATTRIBUTE) && !entry.getKey().equals(WekaParams.CLASSINDEX) )
 			{
 				options.add(entry.getKey());

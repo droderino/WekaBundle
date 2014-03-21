@@ -83,7 +83,7 @@ public class StringToWordVectorTask implements TextMiningTask<Instances>{
 		{
 			Entry<String, String> entry = iter.next();
 			
-			if( !entry.getKey().equals(FILE) && !entry.getKey().equals(PREPARATEDFILE) 
+			if( !entry.getKey().equals(FILE) && !entry.getKey().equals(PREPARATEDFILE)  && !entry.getKey().equals(WekaParams.EVALUATIONRESULTS)
 					&& !entry.getKey().equals(WekaParams.CLASSINDEX) && !entry.getKey().equals(WekaParams.CLASSATTRIBUTE) )
 			{
 				options.add(entry.getKey());

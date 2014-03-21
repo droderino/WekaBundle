@@ -22,11 +22,11 @@ public class AndroidBugsToArff extends DefaultHandler implements DataPreparation
 		try {
 			SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
 			AndroidBugsXmlHelper helper = new AndroidBugsXmlHelper();
-			saxParser.parse(new File(params.get(XMLFILE)), helper);
+			saxParser.parse(new File(params.get(FILE)), helper);
 			
 			Instances output = helper.getData();
 			String result = output.toString();
-			params.put(PREPARATEDFILE, params.get(XMLFILE) + "_converted.arff");
+			params.put(PREPARATEDFILE, params.get(FILE) + "_converted.arff");
 			FileWriter fw = new FileWriter(params.get(PREPARATEDFILE));
 			fw.write(result);
 			fw.close();
